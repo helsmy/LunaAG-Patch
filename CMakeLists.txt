@@ -4,6 +4,14 @@ project(LunaAGPatch LANGUAGES CXX)
 
 add_library(LunaAGPatch SHARED
     src/dllmain.cpp
+    src/common.cpp
+    src/config_redirect.cpp
+    src/dns_getproc_hooks.cpp
+    src/il2cpp_ui.cpp
+    src/module_patch.cpp
+    src/state.cpp
+    src/winhttp_hooks.cpp
+    src/patch_internal.hpp
 )
 
 target_compile_features(LunaAGPatch PRIVATE cxx_std_20)
