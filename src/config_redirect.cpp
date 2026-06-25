@@ -101,7 +101,7 @@ void LoadConfig()
     g_patchAllNonSystem = ReadIniInt(L"Redirect", L"PatchAllNonSystem", 1) != 0;
     g_keepAlive = ReadIniInt(L"Redirect", L"KeepAlive", 1) != 0;
     g_uiPatch = ReadIniInt(L"Redirect", L"UiPatch", 1) != 0;
-    g_forceLoginCallback = ReadIniInt(L"Redirect", L"ForceLoginCallback", 1) != 0;
+    g_forceLoginCallback = ReadIniInt(L"Redirect", L"ForceLoginCallback", 0) != 0;
     g_inlineHooks = ReadIniInt(L"Redirect", L"InlineHooks", 1) != 0;
     ClearLogFile();
     OpenConsole();
