@@ -112,6 +112,8 @@ BOOL WINAPI HookWinHttpSendRequest(HINTERNET request, LPCWSTR headers, DWORD hea
 
     const bool isLoginNameRequest = requestPath.find(L"/pass/user/loginByLoginName") != std::wstring::npos
         || requestPath.find(L"/sdk-api/pass/user/loginByLoginName") != std::wstring::npos;
+    const bool isPasswordLoginRequest = requestPath == L"/pass/user/login"
+        || requestPath == L"/sdk-api/pass/user/login";
     const bool isLoginRequest = requestPath.find(L"/pass/user/login") != std::wstring::npos
         || requestPath.find(L"/sdk-api/pass/user/login") != std::wstring::npos;
     if (isLoginNameRequest && optional && optionalLength > 0)
@@ -147,6 +149,13 @@ BOOL WINAPI HookWinHttpSendRequest(HINTERNET request, LPCWSTR headers, DWORD hea
             g_pendingForceLoginCallback = true;
             Log("force login callback pending path=%s", WideToUtf8(requestPath).c_str());
         }
+    }
+
+    if (isPasswordLoginRequest)
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_pendingHideLoginUi = true;
+        Log("login UI hide pending path=%s", WideToUtf8(requestPath).c_str());
     }
 
     return g_winHttpSendRequest(request, headers, headersLength, requestOptional, requestOptionalLength, requestTotalLength, context);

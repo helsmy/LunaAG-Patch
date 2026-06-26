@@ -208,21 +208,24 @@ bool ResolveIl2CppUiPatch()
     g_textSetTextMethod = g_il2cppClassGetMethodFromName(textClass, "set_text", 1);
     g_geetestVerifyCallbackMethod = g_il2cppClassGetMethodFromName(g_loginModuleClass, "GeetestVerifyCallback", 4);
     g_innerLoginCallbackMethod = g_il2cppClassGetMethodFromName(g_loginModuleClass, "InnerLoginCallback", 5);
+    g_hideLoginUiMethod = g_il2cppClassGetMethodFromName(g_loginModuleClass, "HideLoginUI", 0);
     g_loginResultCtorMethod = g_il2cppClassGetMethodFromName(g_loginResultClass, ".ctor", 0);
     g_userInfoCtorMethod = g_il2cppClassGetMethodFromName(g_userInfoClass, ".ctor", 0);
     g_logoffApplyCtorMethod = g_il2cppClassGetMethodFromName(g_logoffApplyClass, ".ctor", 0);
     if (!g_findObjectsOfTypeMethod || !g_textSetTextMethod || !g_geetestVerifyCallbackMethod ||
-        !g_innerLoginCallbackMethod || !g_loginResultCtorMethod || !g_userInfoCtorMethod || !g_logoffApplyCtorMethod)
+        !g_innerLoginCallbackMethod || !g_hideLoginUiMethod ||
+        !g_loginResultCtorMethod || !g_userInfoCtorMethod || !g_logoffApplyCtorMethod)
     {
         return false;
     }
 
-    Log("IL2CPP UI patch resolved LoginModule=%p FindObjectsOfType=%p Text.set_text=%p GeetestVerifyCallback=%p InnerLoginCallback=%p",
+    Log("IL2CPP UI patch resolved LoginModule=%p FindObjectsOfType=%p Text.set_text=%p GeetestVerifyCallback=%p InnerLoginCallback=%p HideLoginUI=%p",
         g_loginModuleClass,
         g_findObjectsOfTypeMethod,
         g_textSetTextMethod,
         g_geetestVerifyCallbackMethod,
-        g_innerLoginCallbackMethod);
+        g_innerLoginCallbackMethod,
+        g_hideLoginUiMethod);
     ResolveIl2CppFieldOffsets();
     return true;
 }
@@ -312,6 +315,26 @@ bool BypassCaptchaForLoginModule(void* loginModule)
     }
 
     Log("GeetestVerifyCallback bypassed");
+    return true;
+}
+
+bool HideLoginModuleUi(void* loginModule)
+{
+    if (!loginModule || !g_hideLoginUiMethod || !g_il2cppRuntimeInvoke)
+    {
+        return false;
+    }
+
+    void* exception = nullptr;
+    Log("calling HideLoginUI object=%p", loginModule);
+    g_il2cppRuntimeInvoke(g_hideLoginUiMethod, loginModule, nullptr, &exception);
+    if (exception)
+    {
+        Log("HideLoginUI exception");
+        return false;
+    }
+
+    Log("HideLoginUI called");
     return true;
 }
 
@@ -540,6 +563,18 @@ void PatchLoginModules()
         std::lock_guard<std::mutex> lock(g_mutex);
         g_forceLoginCallbackDone = true;
         g_pendingForceLoginCallback = false;
+    }
+
+    bool shouldHideLoginUi = false;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        shouldHideLoginUi = g_pendingHideLoginUi;
+    }
+
+    if (shouldHideLoginUi && count > 0 && HideLoginModuleUi(data[0]))
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_pendingHideLoginUi = false;
     }
 }
 }
