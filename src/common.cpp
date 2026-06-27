@@ -314,9 +314,12 @@ bool IsPatchTargetModule(HMODULE module)
         return true;
     }
 
-    const auto slash = modulePath.find_last_of(L"\\/");
-    const std::wstring fileName = slash == std::wstring::npos ? modulePath : modulePath.substr(slash + 1);
+    std::wstring gameDir = ToLowerWide(GetModuleDirectory(GetModuleHandleW(nullptr)));
+    if (!gameDir.empty() && gameDir.back() != L'\\' && gameDir.back() != L'/')
+    {
+        gameDir += L'\\';
+    }
 
-    return fileName == L"gameassembly.dll" || fileName == L"unityplayer.dll";
+    return !gameDir.empty() && StartsWith(modulePath, gameDir);
 }
 }
