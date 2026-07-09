@@ -31,3 +31,16 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config Release
 
+    - name: Prepare Release
+      run: |
+        mkdir ${{github.workspace}}/release
+        copy build\Release\*.exe release\
+        copy build\Release\*.dll release\
+
+    - name: Publish Release
+      uses: softprops/action-gh-release@v3
+      with:
+        working_directory: ${{github.workspace}}/release
+        files: |
+          *.exe
+          *.dll
